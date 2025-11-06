@@ -2,20 +2,21 @@ import styled from "styled-components";
 import logo from "../../Assets/Logo.png";
 
 const SidebarContainer = styled.div`
-  right: 0;
-  top: 0;
-  width: 35%;
+  width: ${({ larg }) => larg};
   height: 100vh;
   background-color: #f1f1f1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+  box-shadow: ${({ position }) =>
+    position === "left"
+      ? "5px 0 15px rgba(0, 0, 0, 0.1)"
+      : "-5px 0 15px rgba(0, 0, 0, 0.1)"};
 `;
 
 const Image = styled.img`
-  width: 400px;
+  width: 70%;
   margin-bottom: 10px;
 `;
 
@@ -29,24 +30,26 @@ const Diviser = styled.div`
 const Subtitle = styled.h3`
   color: #f1f1f1;
   font-weight: normal;
-  font-size: 50px;
+  font-size: 3vw;
   text-align: center;
+  cursor: default;
 `;
 
 const Span = styled.span`
   color: #09374E;
-  font-size: 40px;
+  font-size: 3.2vw;
   text-align: center;
+  cursor: default;
 `;
 
-function LoginSidebar() {
+function LoginSidebar({ position = "right", text = "", larg="35%" }) {
   return(
-    <SidebarContainer>
+    <SidebarContainer position={position} larg={larg}>
       <Image src={logo} alt="Logo DO ALL"/>
       <Diviser>
         <Subtitle>CRM</Subtitle>
       </Diviser>
-      <Span>LOGIN E CADASTRO</Span>
+      <Span>{text}</Span>
     </SidebarContainer>
   );
 }

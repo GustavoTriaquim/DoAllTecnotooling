@@ -17,14 +17,13 @@ const LoginContainer = styled.main`
 `;
 
 const Title = styled.h1`
-  font-size: 100px;
+  font-size: 6vw;
   color: #09374e;
   letter-spacing: 2px;
-  position: absolute;
-  top: ${({ isRegistering }) => (isRegistering ? "30px" : "100px")};
-  left: 50%;
-  transform: translateX(-50%);
-  margin: 0;
+  margin-top: ${({ isRegistering }) => (isRegistering ? "4vh" : "7vh")};
+  margin-bottom: ${({ isRegistering }) => (isRegistering ? "-3vh" : "-10vh")};
+  cursor: default;
+  text-align: center;
 `;
 
 const LoginFormWrapper = styled.div`
@@ -65,7 +64,7 @@ const Fields = styled.div`
 `;
 
 const Label = styled.label`
-  font-size: 20px;
+  font-size: 2vw;
   font-weight: bold;
   color: #161616;
   margin-bottom: 5px;
@@ -75,7 +74,7 @@ const Input = styled.input`
   padding: 8px 10px;
   border: 1px solid #3f3f3f;
   outline: none;
-  font-size: 16px;
+  font-size: 1vw;
   width: 100%;
   height: 40px;
 
@@ -88,14 +87,14 @@ const Button = styled.button`
   background-color: #128d51;
   color: #f1f1f1;
   border: none;
-  padding: 13px 100px;
+  padding: 2vh 5vw;
   border-radius: 20px;
   cursor: pointer;
   font-weight: bold;
   margin-top: 10px;
   transition: 0.3s;
   width: 70%;
-  font-size: 35px;
+  font-size: 1.7vw;
   font-family: 'Jura', sans-serif;
 
   &:hover {
@@ -105,10 +104,11 @@ const Button = styled.button`
 `;
 
 const Question = styled.p`
-  font-size: 20px;
+  font-size: 1.5vw;
   font-weight: bold;
   margin-top: 15px;
   color: #161616;
+  cursor: default;
 `;
 
 const Link = styled.button`
@@ -116,7 +116,7 @@ const Link = styled.button`
   border: none;
   color: #09347e;
   cursor: pointer;
-  font-size: 20px;
+  font-size: 1.3vw;
   text-decoration: underline;
   margin-top: 5px;
 
@@ -146,13 +146,13 @@ function LoginPage() {
               {isRegistering && (
                 <Fields>
                   <Label>Nome Completo</Label>
-                  <Input type="text" placeholder="Digite seu nome completo" />
+                  <Input type="text" />
                 </Fields>
               )}
 
               <Fields>
                 <Label>E-mail</Label>
-                <Input type="email" placeholder="exemplo@email.com"/>
+                <Input type="email"/>
               </Fields>
 
               <Fields>
@@ -168,14 +168,14 @@ function LoginPage() {
               )}
             </FieldWrapper>
 
-            <Button onClick={() => navigate("/404")}>{isRegistering ? "CADASTRAR" : "FAZER LOGIN"}</Button>
+            <Button onClick={() => navigate("/user-home")}>{isRegistering ? "CADASTRAR" : "FAZER LOGIN"}</Button>
           </LoginForm>
           <Question>{isRegistering ? "Já possui login?" : "Não possui login?"}</Question>
           <Link onClick={toggleMode}>{isRegistering ? "Fazer Login" : "Cadastrar-se"}</Link>
         </LoginFormWrapper>
       </LoginContainer>
 
-      <LoginSidebar />
+      <LoginSidebar position="right" text="LOGIN E CADASTRO" />
     </PageContainer>
   );
 }
