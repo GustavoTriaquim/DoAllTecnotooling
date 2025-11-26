@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import LoginSidebar from "../../../Components/LoginRegisterSidebar/LoginSidebar";
 import styled from "styled-components";
 
@@ -54,6 +55,8 @@ const Button = styled.button`
 `;
 
 function HomeUser () {
+  const navigate = useNavigate();
+
   return(
    <PageContainer>
     <LoginSidebar position="left" larg="30%"/>
@@ -62,8 +65,8 @@ function HomeUser () {
       <Title>MENU PRINCIPAL</Title>
       
       <ButtonsDiv>
-        <Button>NOVA SOLICITAÇÃO</Button>
-        <Button>MINHAS SOLICITAÇÕES</Button>
+        <Button onClick={() => navigate("/user-solicitacao")}>NOVA SOLICITAÇÃO</Button>
+        <Button onClick={() => navigate("/user-main")}>MINHAS SOLICITAÇÕES</Button>
       </ButtonsDiv>
     </MenuContainer>
   </PageContainer>
