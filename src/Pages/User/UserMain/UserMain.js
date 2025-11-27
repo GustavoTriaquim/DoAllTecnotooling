@@ -1,7 +1,10 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
-import LoginSidebar from "../../../Components/LoginRegisterSidebar/LoginSidebar";
+import Sidebar from "../../../Components/Sidebar/Sidebar";
+import { db } from "../../../firebaseConfig";
+import { collection, query, where, getDocs }  from "firebase/firestore";
+import { useAuth } from "../../../Services/authContext";
 
 const MainContainer = styled.div`
   min-height: 100vh;
@@ -100,31 +103,63 @@ const CardStatus = styled.p`
 `;
 
 function UserMain() {
-  const [solicitacoes] = useState([
-    { id: 1, titulo: "Sol. 1", status: "Em análise" },
-    { id: 2, titulo: "Sol. 2", status: "Aprovada" },
-    { id: 3, titulo: "Sol. 3", status: "Rejeitada" },
-  ]);
-
+  const { id } = useParams();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+
+  const [solicitacoes, setSolicitacoes] = useState([]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    async function carregarSolicitacoes() {
+      try {
+        const q = query(
+          collection(db, "solicitacoes"),
+          where("userId", "==", currentUser.id)
+        );
+
+        const snap = await getDocs(q);
+
+        const lista = snap.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setSolicitacoes(lista);
+      } catch (e) {
+        console.error("Erro ao carregar solicitacoes:", e);
+      }
+    }
+
+    carregarSolicitacoes();
+  }, [currentUser]);
+
+  const userId = currentUser ? currentUser.id : id;
 
   return(
     <MainContainer>
-      <LoginSidebar position="left" text="SOLICITAÇÕES" larg="25%"/>
+      <Sidebar activePage="main" userId={userId} />
 
       <ContentWrapper>
         <Header>
-          <HeaderButton onClick={() => navigate("/user-solicitacao")}>NOVA SOLICITAÇÃO</HeaderButton>
+          <HeaderButton onClick={() => navigate(`/user-home/${userId}/user-solicitacao`)}>NOVA SOLICITAÇÃO</HeaderButton>
         </Header>
 
         <ScrollableContent>
           <Title>SOLICITAÇÕES</Title>
           
           <Grid>
+            {solicitacoes.length === 0 && (
+              <p>Nenhuma solicitação criada.</p>
+            )}
+
             {solicitacoes.map((item) => (
               <Card
                 key={item.id}
-                onClick={() => navigate(`/solicitacao-detalhe/${item.id}`)}
+                onClick={() =>
+                  navigate(`/solicitacao-detalhe/${item.id}`)
+                }
               >
                 <CardTitle>{item.titulo}</CardTitle>
                 <CardStatus>{item.status}</CardStatus>

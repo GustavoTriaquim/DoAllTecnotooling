@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { IMaskInput } from "react-imask";
 import styled from "styled-components";
 import LoginSidebar from "../../../Components/LoginRegisterSidebar/LoginSidebar";
+import { db } from "../../../firebaseConfig";
+import { addDoc, collection, doc } from "firebase/firestore";
+import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../../../Services/authContext";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -19,11 +23,11 @@ const ContentWrapper = styled.div`
 
 const FormWrapper = styled.div`
   width: 100%;
-  max-width: 60vh;
+  max-width: 80vh;
   background-color: #fff;
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  padding: 30px;
+  padding: 5vh 10vh;
 
   max-height: 95vh;
   overflow-y: auto;
@@ -171,10 +175,9 @@ const SubmitButton = styled.button`
 `;
 
 function SolicitacaoUser() {
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    alert("Solicitação enviada! (Simulação de navegação para /homeUser)");
-  }
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const { id: userIdFromURL } = useParams();
 
   const [pessoaFisica, setPessoaFisica] = useState(null);
   const [cpf, setCpf] = useState("");
@@ -182,7 +185,52 @@ function SolicitacaoUser() {
   const [nome, setNome] = useState("");
   const [razaoSocial, setRazaoSocial] = useState("");
   const [email, setEmail] = useState("");
-  const [endereco, setEndereco] = useState("");
+  const [descricao, setDescricao] = useState("");
+
+  useEffect(() => {
+    if (currentUser && currentUser.id !== userIdFromURL) {
+      alert("Acesso negado: ID de usuário na URL não corresponde ao usuário logado.");
+      navigate(`/user-home/${currentUser.id}/user-main`);
+    }
+  }, [currentUser, userIdFromURL, navigate]);
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!currentUser) {
+      alert("Usuário não autenticado. Por favor, faça login novamente.");
+      navigate("/");
+      return;
+    }
+
+    try {
+      const userRef = doc(db, "usuarios", currentUser.id);
+      const solicitacoesRef = collection(userRef, "solicitacoes");
+
+      const dataFormatada = new Date().toLocaleDateString("pt-BR");
+
+      await addDoc(solicitacoesRef, {
+        titulo: `Solicitação - ${nome || razaoSocial}`,
+        status: "Nova",
+        data: dataFormatada,
+        descricao,
+        cpf,
+        cnpj,
+        nome,
+        razaoSocial,
+        email,
+        pessoaFisica,
+        criadoEm: new Date(),
+        userId: currentUser.id, 
+      });
+
+      navigate(`/user-home/${currentUser.id}/user-main`);
+    } catch (error) {
+      console.error("Erro ao criar solicitação:", error);
+      alert("Erro ao enviar solicitação.");
+    }
+  };
 
   return (
     <Container>
@@ -213,9 +261,8 @@ function SolicitacaoUser() {
 
           {pessoaFisica === "sim" && (
             <>
-              <Label htmlFor="cpf">CPF</Label>
+              <Label>CPF</Label>
               <MaskedInput 
-                id="cpf"
                 mask="000.000.000-00"
                 value={cpf}
                 onAccept={(value) => setCpf(value)}
@@ -223,9 +270,8 @@ function SolicitacaoUser() {
                 type="text"
               />
 
-              <Label htmlFor="nome">Nome Completo (para contato)</Label>
+              <Label>Nome Completo (para contato)</Label>
               <Input 
-                id="nome"
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
                 type="text"
@@ -235,9 +281,8 @@ function SolicitacaoUser() {
 
           {pessoaFisica === "nao" && (
             <>
-              <Label htmlFor="cnpj">CNPJ</Label>
+              <Label>CNPJ</Label>
               <MaskedInput 
-                id="cnpj"
                 mask="00.000.000/000-00"
                 value={cnpj}
                 onAccept={(value) => setCnpj(value)}
@@ -245,9 +290,8 @@ function SolicitacaoUser() {
                 type="text"
               />
 
-              <Label htmlFor="razaoSocial">Razão Social</Label>
+              <Label>Razão Social</Label>
               <Input 
-                id="razaoSocial"
                 value={razaoSocial}
                 onChange={(e) => setRazaoSocial(e.target.value)}
                 type="text"
@@ -255,20 +299,18 @@ function SolicitacaoUser() {
             </>
           )}
 
-          <Label htmlFor="email">E-mail (para contato)</Label>
+          <Label>E-mail (para contato)</Label>
           <Input 
-            id="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             type="email"
             autoCapitalize="none"
           />
 
-          <Label htmlFor="endereco">Endereço físico</Label>
+          <Label>Descrição</Label>
           <TextArea 
-            id="endereco"
-            value={endereco}
-            onChange={(e) => setEndereco(e.target.value)}
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
             rows={4}
           />
 

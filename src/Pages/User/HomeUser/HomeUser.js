@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import LoginSidebar from "../../../Components/LoginRegisterSidebar/LoginSidebar";
 import styled from "styled-components";
+import LoginSidebar from "../../../Components/LoginRegisterSidebar/LoginSidebar";
+import { useAuth } from "../../../Services/authContext";
 
 const PageContainer = styled.main`
   display: flex;
@@ -56,17 +57,23 @@ const Button = styled.button`
 
 function HomeUser () {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const userId = currentUser ? currentUser.id : null;
+
+  if (!userId) {
+    return <div>Carregando...</div>;
+  }
 
   return(
    <PageContainer>
-    <LoginSidebar position="left" larg="30%"/>
+    <LoginSidebar position="left" text="SOLICITAÇÕES" larg="25%" />
 
     <MenuContainer>
       <Title>MENU PRINCIPAL</Title>
       
       <ButtonsDiv>
-        <Button onClick={() => navigate("/user-solicitacao")}>NOVA SOLICITAÇÃO</Button>
-        <Button onClick={() => navigate("/user-main")}>MINHAS SOLICITAÇÕES</Button>
+        <Button onClick={() => navigate(`/user-home/${userId}/user-solicitacao`)}>NOVA SOLICITAÇÃO</Button>
+        <Button onClick={() => navigate(`/user-home/${userId}/user-main`)}>MINHAS SOLICITAÇÕES</Button>
       </ButtonsDiv>
     </MenuContainer>
   </PageContainer>

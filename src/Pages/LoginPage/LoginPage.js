@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import LoginSidebar from "../../Components/LoginRegisterSidebar/LoginSidebar";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { login, cadastro } from "../../Services/authService";
+import { auth } from "../../firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
 
 const PageContainer = styled.div`
   display: flex;
@@ -128,11 +131,88 @@ const Link = styled.button`
 function LoginPage() {
   const [isRegistering, setIsRegistering] = useState(false);
 
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [erro, setErro] = useState("");
+
   const toggleMode = () => {
     setIsRegistering((prev) => !prev);
+    setErro("");
   }
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        navigate(`/user-home/${user.uid}`);
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("Tentando com:", { email, senha });
+    setErro("");
+
+    if (!email || !senha) {
+      const msg = "Preencha todos os campos.";
+      setErro(msg);
+      alert(msg);
+      return;
+    }
+
+    if (isRegistering) {
+      if (senha !== confirmarSenha) {
+        const msg = "As senhas não coincidem.";
+        setErro(msg);
+        alert(msg);
+        return;
+      }
+      if (!nome) {
+        const msg = "Preencha o nome completo.";
+        setErro(msg);
+        alert(msg);
+        return;
+      }
+
+      try {
+        const user = await cadastro(nome, email, senha);
+        navigate(`/user-home/${user.id}`);
+      } catch (error) {
+        const msg = "Erro ao cadastrar. Verifique se o e-mail já está em uso.";
+        setErro(msg);
+        alert(msg);
+        console.error(error);
+      }
+      return;
+    }
+
+    try {
+      const user = await login(email, senha);
+
+      if (!user) {
+        const msg = "E-mail ou senha incorretos.";
+        setErro(msg);
+        alert(msg);
+        return;
+      }
+
+      if (user.tipoUsuario === "funcionario") {
+        navigate("/funcionario-main");
+      } else {
+        navigate(`/user-home/${user.id}`);
+      }
+    } catch (error) {
+      const msg = "Erro ao fazer login.";
+      setErro(msg);
+      alert(msg);
+      console.error(error);
+    }
+  }
 
   return(
     <PageContainer>
@@ -140,35 +220,55 @@ function LoginPage() {
         <Title isRegistering={isRegistering}>{isRegistering ? "CADASTRO" : "LOGIN"}</Title>
 
         <LoginFormWrapper>
-          <LoginForm>
+          <LoginForm onSubmit={handleSubmit}>
             <FieldWrapper>
 
               {isRegistering && (
                 <Fields>
                   <Label>Nome Completo</Label>
-                  <Input type="text" />
+                  <Input 
+                    type="text" 
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                    required
+                  />
                 </Fields>
               )}
 
               <Fields>
                 <Label>E-mail</Label>
-                <Input type="email"/>
+                <Input 
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </Fields>
 
               <Fields>
                 <Label>Senha</Label>
-                <Input type="password" />
+                <Input 
+                  type="password" 
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  required
+                />
               </Fields>
 
               {isRegistering && (
                 <Fields>
                   <Label>Confirmar Senha</Label>
-                  <Input type="password" />
+                  <Input 
+                    type="password" 
+                    value={confirmarSenha}
+                    onChange={(e) => setConfirmarSenha(e.target.value)}
+                    required
+                  />
                 </Fields>
               )}
             </FieldWrapper>
 
-            <Button onClick={() => navigate("/user-home")}>{isRegistering ? "CADASTRAR" : "FAZER LOGIN"}</Button>
+            <Button type="submit">{isRegistering ? "CADASTRAR" : "FAZER LOGIN"}</Button>
           </LoginForm>
           <Question>{isRegistering ? "Já possui login?" : "Não possui login?"}</Question>
           <Link onClick={toggleMode}>{isRegistering ? "Fazer Login" : "Cadastrar-se"}</Link>
